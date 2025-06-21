@@ -13,13 +13,16 @@
 
         body {
             font-family: 'Courier New', monospace;
-            background-color: #000;
-            color: #fff;
+            background-color: #fff;
+            color: #000;
             padding: 20px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            /* Optimize for e-ink displays */
+            -webkit-font-smoothing: none;
+            font-smooth: never;
         }
 
         .container {
@@ -32,12 +35,14 @@
             font-size: 24px;
             margin-bottom: 10px;
             font-weight: bold;
+            color: #000;
         }
 
         .current-temp {
             font-size: 72px;
             font-weight: bold;
             margin: 20px 0;
+            color: #000;
         }
 
         .condition {
@@ -45,6 +50,7 @@
             margin-bottom: 30px;
             text-transform: uppercase;
             letter-spacing: 2px;
+            color: #000;
         }
 
         .details {
@@ -62,11 +68,17 @@
         .detail-label {
             font-size: 12px;
             margin-bottom: 5px;
-            opacity: 0.7;
+            opacity: 0.8;
+            color: #333;
+        }
+
+        .detail-value {
+            color: #000;
+            font-weight: bold;
         }
 
         .forecast {
-            border-top: 1px solid #333;
+            border-top: 2px solid #000;
             padding-top: 20px;
         }
 
@@ -74,6 +86,7 @@
             font-size: 18px;
             margin-bottom: 15px;
             font-weight: bold;
+            color: #000;
         }
 
         .forecast-item {
@@ -81,7 +94,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid #ccc;
         }
 
         .forecast-item:last-child {
@@ -92,12 +105,14 @@
             font-weight: bold;
             width: 80px;
             text-align: left;
+            color: #000;
         }
 
         .forecast-condition {
             flex: 1;
             text-align: center;
             font-size: 14px;
+            color: #000;
         }
 
         .temps {
@@ -107,21 +122,25 @@
 
         .high {
             font-weight: bold;
+            color: #000;
         }
 
         .low {
             opacity: 0.7;
+            color: #333;
         }
 
         .loading {
             font-size: 18px;
-            opacity: 0.7;
+            opacity: 0.8;
+            color: #333;
         }
 
         .error {
-            color: #fff;
-            background-color: #333;
+            color: #000;
+            background-color: #f0f0f0;
             padding: 20px;
+            border: 1px solid #ccc;
             border-radius: 5px;
             margin: 20px 0;
         }
@@ -131,9 +150,20 @@
             bottom: 10px;
             right: 10px;
             font-size: 10px;
-            opacity: 0.5;
+            opacity: 0.6;
+            color: #333;
         }
 
+        .next-update {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 10px;
+            opacity: 0.6;
+            color: #333;
+        }
+
+        /* Optimize for Kindle's e-ink display */
         @media (max-width: 480px) {
             .current-temp {
                 font-size: 60px;
@@ -142,6 +172,14 @@
             .location {
                 font-size: 20px;
             }
+        }
+
+        /* High contrast for e-ink */
+        .container {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 20px;
+            border-radius: 0;
         }
     </style>
 </head>
@@ -153,6 +191,7 @@
     </div>
     
     <div class="last-updated" id="last-updated"></div>
+    <div class="next-update" id="next-update"></div>
 
     <script>
         // Try to load config, fallback to demo mode if not available
@@ -177,6 +216,8 @@
                 this.apiKey = config && config.apiKey ? config.apiKey : null;
                 this.weatherContent = document.getElementById('weather-content');
                 this.lastUpdated = document.getElementById('last-updated');
+                this.nextUpdate = document.getElementById('next-update');
+                this.updateInterval = 15 * 60 * 1000; // 15 minutes for Kindle optimization
                 this.init();
             }
 
@@ -185,8 +226,8 @@
                 this.lat = 52.2174;
                 this.lon = 0.1278;
                 this.updateWeather();
-                // Refresh every 10 minutes
-                setInterval(() => this.updateWeather(), 10 * 60 * 1000);
+                // Refresh every 15 minutes for Kindle battery optimization
+                setInterval(() => this.updateWeather(), this.updateInterval);
             }
 
             async updateWeather() {
@@ -296,19 +337,19 @@
                     <div class="details">
                         <div class="detail-item">
                             <div class="detail-label">FEELS LIKE</div>
-                            <div>${data.current.feels_like}°</div>
+                            <div class="detail-value">${data.current.feels_like}°</div>
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">HUMIDITY</div>
-                            <div>${data.current.humidity}%</div>
+                            <div class="detail-value">${data.current.humidity}%</div>
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">WIND</div>
-                            <div>${data.current.wind} km/h</div>
+                            <div class="detail-value">${data.current.wind} km/h</div>
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">PRESSURE</div>
-                            <div>-- hPa</div>
+                            <div class="detail-value">-- hPa</div>
                         </div>
                     </div>
 
@@ -327,7 +368,11 @@
                     </div>
                 `;
 
-                this.lastUpdated.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+                const now = new Date();
+                const nextUpdateTime = new Date(now.getTime() + this.updateInterval);
+                
+                this.lastUpdated.textContent = `Updated: ${now.toLocaleTimeString()}`;
+                this.nextUpdate.textContent = `Next: ${nextUpdateTime.toLocaleTimeString()}`;
             }
         }
 
@@ -336,16 +381,13 @@
             new WeatherDashboard();
         });
 
-        // Prevent phone from sleeping by touching the screen occasionally
-        let touchInterval;
+        // Optimized for Kindle - minimal background activity
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                clearInterval(touchInterval);
+                // Pause updates when not visible to save battery
+                console.log('Page hidden, pausing updates');
             } else {
-                touchInterval = setInterval(() => {
-                    // Keep the page active
-                    document.title = `Weather ${new Date().getSeconds()}`;
-                }, 30000);
+                console.log('Page visible, resuming updates');
             }
         });
     </script>
