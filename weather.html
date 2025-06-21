@@ -126,17 +126,16 @@
             height: 150px;
             position: relative;
             margin: 20px 0;
-            border: 1px solid #ccc;
             background: #fff;
-            padding: 10px;
+            padding: 20px 10px 30px 40px; /* top, right, bottom, left */
         }
 
         .graph-line {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            width: calc(100% - 20px);
-            height: calc(100% - 20px);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         .graph-point {
@@ -148,20 +147,21 @@
             transform: translate(-50%, -50%);
         }
 
-        .graph-label {
+        .graph-label-x {
             position: absolute;
             font-size: 11px;
             color: #333;
             transform: translateX(-50%);
+            bottom: -5px;
         }
 
-        .graph-temp-label {
-            bottom: -20px;
+        .graph-label-y {
+            position: absolute;
+            font-size: 11px;
+            color: #333;
+            transform: translateY(-50%);
+            left: -35px;
             font-weight: bold;
-        }
-
-        .graph-time-label {
-            top: -20px;
         }
 
         .loading {
@@ -477,7 +477,7 @@
             }
 
             createTemperatureGraph(hourlyData) {
-                if (!hourlyData || hourlyData.length === 0) return '';
+                if (!hourlyData || hourlyData.length < 2) return '';
                 
                 const temps = hourlyData.map(h => h.temp);
                 const minTemp = Math.min(...temps);
@@ -489,8 +489,20 @@
                 
                 let svgPath = '';
                 let points = '';
-                let tempLabels = '';
-                let timeLabels = '';
+                let xLabels = '';
+                let yLabels = '';
+                
+                // Generate Y-axis labels (Temperature)
+                const numYLabels = 3;
+                for (let i = 0; i <= numYLabels; i++) {
+                    const temp = Math.round(minTemp + (tempRange / numYLabels) * i);
+                    const y = graphHeight - ((temp - minTemp) / tempRange) * graphHeight;
+                    if (tempRange === 0) {
+                         yLabels += `<div class="graph-label-y" style="top: 50%;">${temp}°</div>`;
+                         break;
+                    }
+                    yLabels += `<div class="graph-label-y" style="top: ${y}%;">${temp}°</div>`;
+                }
                 
                 hourlyData.forEach((hour, index) => {
                     const x = (index / (hourlyData.length - 1)) * graphWidth;
@@ -498,24 +510,17 @@
                         graphHeight - ((hour.temp - minTemp) / tempRange) * graphHeight : 
                         graphHeight / 2;
                     
-                    // Add point to path
                     if (index === 0) {
                         svgPath += `M ${x} ${y}`;
                     } else {
                         svgPath += ` L ${x} ${y}`;
                     }
                     
-                    // Add point marker
                     points += `<div class="graph-point" style="left: ${x}%; top: ${y}%;"></div>`;
                     
-                    // Add temperature label (every 3rd point to avoid crowding)
-                    if (index % 3 === 0 || index === hourlyData.length - 1) {
-                        tempLabels += `<div class="graph-label graph-temp-label" style="left: ${x}%;">${hour.temp}°</div>`;
-                    }
-                    
-                    // Add time label (every 4th point)
+                    // Add X-axis labels (Time) - every 4th hour
                     if (index % 4 === 0 || index === hourlyData.length - 1) {
-                        timeLabels += `<div class="graph-label graph-time-label" style="left: ${x}%;">${hour.time}</div>`;
+                         xLabels += `<div class="graph-label-x" style="left: ${x}%;">${hour.time}</div>`;
                     }
                 });
                 
@@ -525,8 +530,8 @@
                             <path d="${svgPath}" stroke="#000" stroke-width="2" fill="none"/>
                         </svg>
                         ${points}
-                        ${tempLabels}
-                        ${timeLabels}
+                        ${xLabels}
+                        ${yLabels}
                     </div>
                 `;
             }
