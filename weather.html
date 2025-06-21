@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .location {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .current-temp {
+            font-size: 72px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .condition {
+            font-size: 20px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            margin-bottom: 5px;
+            opacity: 0.7;
+        }
+
+        .forecast {
+            border-top: 1px solid #333;
+            padding-top: 20px;
+        }
+
+        .forecast-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .forecast-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #222;
+        }
+
+        .forecast-item:last-child {
+            border-bottom: none;
+        }
+
+        .day {
+            font-weight: bold;
+            width: 80px;
+            text-align: left;
+        }
+
+        .forecast-condition {
+            flex: 1;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .temps {
+            text-align: right;
+            width: 80px;
+        }
+
+        .high {
+            font-weight: bold;
+        }
+
+        .low {
+            opacity: 0.7;
+        }
+
+        .loading {
+            font-size: 18px;
+            opacity: 0.7;
+        }
+
+        .error {
+            color: #fff;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .last-updated {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 10px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 480px) {
+            .current-temp {
+                font-size: 60px;
+            }
+            
+            .location {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="weather-content">
+            <div class="loading">Loading weather...</div>
+        </div>
+    </div>
+    
+    <div class="last-updated" id="last-updated"></div>
+
+    <script src="config.js"></script>
+    <script>
+        class WeatherDashboard {
+            constructor() {
+                this.apiKey = config.apiKey;
+                this.weatherContent = document.getElementById('weather-content');
+                this.lastUpdated = document.getElementById('last-updated');
+                this.init();
+            }
+
+            async init() {
+                // Default to Cambridge, Milton Road coordinates
+                this.lat = 52.2174;
+                this.lon = 0.1278;
+                this.updateWeather();
+                // Refresh every 10 minutes
+                setInterval(() => this.updateWeather(), 10 * 60 * 1000);
+            }
+
+            async updateWeather() {
+                try {
+                    const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${this.lat}&lon=${this.lon}&appid=${this.apiKey}&units=metric`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Weather service unavailable');
+                    }
+
+                    const data = await response.json();
+                    this.displayWeather(data);
+                } catch (error) {
+                    this.displayDemo();
+                }
+            }
+
+            displayDemo() {
+                // Demo data for when API isn't available
+                const demoData = {
+                    location: "Cambridge, UK",
+                    current: {
+                        temp: 16,
+                        condition: "Partly Cloudy",
+                        humidity: 68,
+                        wind: 14,
+                        feels_like: 18
+                    },
+                    forecast: [
+                        { day: "Today", condition: "Cloudy", high: 20, low: 12 },
+                        { day: "Tomorrow", condition: "Rain", high: 17, low: 10 },
+                        { day: "Wed", condition: "Sunny", high: 23, low: 15 },
+                        { day: "Thu", condition: "Cloudy", high: 19, low: 13 },
+                        { day: "Fri", condition: "Rain", high: 16, low: 9 }
+                    ]
+                };
+
+                this.renderWeather(demoData);
+            }
+
+            displayWeather(data) {
+                const weatherData = {
+                    location: data.city.name + ", " + data.city.country,
+                    current: {
+                        temp: Math.round(data.list[0].main.temp),
+                        condition: data.list[0].weather[0].description,
+                        humidity: data.list[0].main.humidity,
+                        wind: Math.round(data.list[0].wind.speed * 3.6), // Convert to km/h
+                        feels_like: Math.round(data.list[0].main.feels_like)
+                    },
+                    forecast: this.processForecast(data.list)
+                };
+
+                this.renderWeather(weatherData);
+            }
+
+            processForecast(list) {
+                const dailyData = {};
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                
+                list.forEach(item => {
+                    const date = new Date(item.dt * 1000);
+                    const dayKey = date.toDateString();
+                    
+                    if (!dailyData[dayKey]) {
+                        dailyData[dayKey] = {
+                            day: date.getDate() === new Date().getDate() ? 'Today' : days[date.getDay()],
+                            temps: [],
+                            conditions: []
+                        };
+                    }
+                    
+                    dailyData[dayKey].temps.push(item.main.temp);
+                    dailyData[dayKey].conditions.push(item.weather[0].main);
+                });
+
+                return Object.values(dailyData).slice(0, 5).map(day => ({
+                    day: day.day,
+                    condition: this.getMostCommonCondition(day.conditions),
+                    high: Math.round(Math.max(...day.temps)),
+                    low: Math.round(Math.min(...day.temps))
+                }));
+            }
+
+            getMostCommonCondition(conditions) {
+                const counts = conditions.reduce((acc, condition) => {
+                    acc[condition] = (acc[condition] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+            }
+
+            renderWeather(data) {
+                this.weatherContent.innerHTML = `
+                    <div class="location">${data.location}</div>
+                    <div class="current-temp">${data.current.temp}°</div>
+                    <div class="condition">${data.current.condition}</div>
+                    
+                    <div class="details">
+                        <div class="detail-item">
+                            <div class="detail-label">FEELS LIKE</div>
+                            <div>${data.current.feels_like}°</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">HUMIDITY</div>
+                            <div>${data.current.humidity}%</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">WIND</div>
+                            <div>${data.current.wind} km/h</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">PRESSURE</div>
+                            <div>-- hPa</div>
+                        </div>
+                    </div>
+
+                    <div class="forecast">
+                        <div class="forecast-title">5-DAY FORECAST</div>
+                        ${data.forecast.map(day => `
+                            <div class="forecast-item">
+                                <div class="day">${day.day}</div>
+                                <div class="forecast-condition">${day.condition}</div>
+                                <div class="temps">
+                                    <span class="high">${day.high}°</span>
+                                    <span class="low">${day.low}°</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                this.lastUpdated.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+            }
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            new WeatherDashboard();
+        });
+
+        // Prevent phone from sleeping by touching the screen occasionally
+        let touchInterval;
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(touchInterval);
+            } else {
+                touchInterval = setInterval(() => {
+                    // Keep the page active
+                    document.title = `Weather ${new Date().getSeconds()}`;
+                }, 30000);
+            }
+        });
+    </script>
+</body>
+</html>
