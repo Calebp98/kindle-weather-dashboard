@@ -154,11 +154,27 @@
     
     <div class="last-updated" id="last-updated"></div>
 
-    <script src="config.js"></script>
     <script>
+        // Try to load config, fallback to demo mode if not available
+        let config = null;
+        try {
+            // This will only work in development, not in production
+            const script = document.createElement('script');
+            script.src = 'config.js';
+            script.onerror = () => {
+                console.log('Config file not found, using demo mode');
+                config = { apiKey: null };
+            };
+            document.head.appendChild(script);
+        } catch (e) {
+            console.log('Config file not found, using demo mode');
+            config = { apiKey: null };
+        }
+
         class WeatherDashboard {
             constructor() {
-                this.apiKey = config.apiKey;
+                // Use API key if available, otherwise use demo mode
+                this.apiKey = config && config.apiKey ? config.apiKey : null;
                 this.weatherContent = document.getElementById('weather-content');
                 this.lastUpdated = document.getElementById('last-updated');
                 this.init();
@@ -174,6 +190,12 @@
             }
 
             async updateWeather() {
+                // If no API key, use demo data
+                if (!this.apiKey) {
+                    this.displayDemo();
+                    return;
+                }
+
                 try {
                     const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${this.lat}&lon=${this.lon}&appid=${this.apiKey}&units=metric`);
                     
@@ -184,6 +206,7 @@
                     const data = await response.json();
                     this.displayWeather(data);
                 } catch (error) {
+                    console.log('API error, falling back to demo data:', error);
                     this.displayDemo();
                 }
             }
