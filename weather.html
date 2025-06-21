@@ -130,6 +130,81 @@
             color: #333;
         }
 
+        /* Hourly forecast styles */
+        .hourly-forecast {
+            border-top: 2px solid #000;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        .hourly-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .hourly-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .hourly-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            background: #fff;
+        }
+
+        .hour-time {
+            font-size: 12px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 5px;
+        }
+
+        .hour-temp {
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 5px;
+        }
+
+        .hour-condition {
+            font-size: 11px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .rain-chance {
+            font-size: 10px;
+            color: #666;
+        }
+
+        .clothing-advice {
+            border-top: 2px solid #000;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        .clothing-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .clothing-text {
+            font-size: 14px;
+            line-height: 1.4;
+            color: #000;
+            background: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
+
         .loading {
             font-size: 18px;
             opacity: 0.8;
@@ -171,6 +246,10 @@
             
             .location {
                 font-size: 20px;
+            }
+
+            .hourly-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             }
         }
 
@@ -269,6 +348,23 @@
                         { day: "Wed", condition: "Sunny", high: 23, low: 15 },
                         { day: "Thu", condition: "Cloudy", high: 19, low: 13 },
                         { day: "Fri", condition: "Rain", high: 16, low: 9 }
+                    ],
+                    hourly: [
+                        { time: "8AM", temp: 14, condition: "Cloudy", rainChance: 20 },
+                        { time: "9AM", temp: 15, condition: "Cloudy", rainChance: 25 },
+                        { time: "10AM", temp: 16, condition: "Partly Cloudy", rainChance: 15 },
+                        { time: "11AM", temp: 17, condition: "Partly Cloudy", rainChance: 10 },
+                        { time: "12PM", temp: 18, condition: "Sunny", rainChance: 5 },
+                        { time: "1PM", temp: 19, condition: "Sunny", rainChance: 5 },
+                        { time: "2PM", temp: 20, condition: "Sunny", rainChance: 10 },
+                        { time: "3PM", temp: 19, condition: "Partly Cloudy", rainChance: 15 },
+                        { time: "4PM", temp: 18, condition: "Cloudy", rainChance: 20 },
+                        { time: "5PM", temp: 17, condition: "Cloudy", rainChance: 25 },
+                        { time: "6PM", temp: 16, condition: "Cloudy", rainChance: 30 },
+                        { time: "7PM", temp: 15, condition: "Light Rain", rainChance: 60 },
+                        { time: "8PM", temp: 14, condition: "Light Rain", rainChance: 70 },
+                        { time: "9PM", temp: 13, condition: "Rain", rainChance: 80 },
+                        { time: "10PM", temp: 12, condition: "Rain", rainChance: 85 }
                     ]
                 };
 
@@ -285,7 +381,8 @@
                         wind: Math.round(data.list[0].wind.speed * 3.6), // Convert to km/h
                         feels_like: Math.round(data.list[0].main.feels_like)
                     },
-                    forecast: this.processForecast(data.list)
+                    forecast: this.processForecast(data.list),
+                    hourly: this.processHourlyForecast(data.list)
                 };
 
                 this.renderWeather(weatherData);
@@ -328,7 +425,104 @@
                 return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
             }
 
+            processHourlyForecast(list) {
+                const hourlyData = [];
+                const today = new Date();
+                const targetHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+                
+                // Get today's hourly data
+                const todayData = list.filter(item => {
+                    const itemDate = new Date(item.dt * 1000);
+                    return itemDate.getDate() === today.getDate() && 
+                           itemDate.getMonth() === today.getMonth() &&
+                           itemDate.getFullYear() === today.getFullYear();
+                });
+
+                targetHours.forEach(hour => {
+                    // Find the closest forecast to this hour
+                    const hourData = todayData.find(item => {
+                        const itemDate = new Date(item.dt * 1000);
+                        return itemDate.getHours() === hour;
+                    }) || todayData[0]; // Fallback to first available data
+
+                    if (hourData) {
+                        const itemDate = new Date(hourData.dt * 1000);
+                        const timeString = itemDate.getHours() <= 12 ? 
+                            `${itemDate.getHours()}AM` : 
+                            `${itemDate.getHours() - 12}PM`;
+                        
+                        hourlyData.push({
+                            time: timeString,
+                            temp: Math.round(hourData.main.temp),
+                            condition: hourData.weather[0].description,
+                            rainChance: this.calculateRainChance(hourData)
+                        });
+                    }
+                });
+
+                return hourlyData;
+            }
+
+            calculateRainChance(weatherData) {
+                // Calculate rain chance based on weather conditions and humidity
+                const condition = weatherData.weather[0].main.toLowerCase();
+                const humidity = weatherData.main.humidity;
+                
+                if (condition.includes('rain') || condition.includes('drizzle')) {
+                    return Math.min(95, humidity + 20);
+                } else if (condition.includes('snow')) {
+                    return Math.min(90, humidity + 15);
+                } else if (condition.includes('cloud')) {
+                    return Math.min(60, humidity - 20);
+                } else {
+                    return Math.max(5, humidity - 40);
+                }
+            }
+
+            generateClothingAdvice(hourlyData) {
+                const temps = hourlyData.map(h => h.temp);
+                const maxTemp = Math.max(...temps);
+                const minTemp = Math.min(...temps);
+                const avgTemp = Math.round(temps.reduce((a, b) => a + b, 0) / temps.length);
+                
+                const rainHours = hourlyData.filter(h => h.rainChance > 50).length;
+                const highRainHours = hourlyData.filter(h => h.rainChance > 70).length;
+                
+                let advice = `Today's weather ranges from ${minTemp}° to ${maxTemp}° with an average of ${avgTemp}°. `;
+                
+                // Temperature-based clothing advice
+                if (maxTemp >= 25) {
+                    advice += "It's quite warm today - light clothing like t-shirts and shorts would be comfortable. ";
+                } else if (maxTemp >= 20) {
+                    advice += "Pleasant temperatures - a light jacket or sweater should be sufficient. ";
+                } else if (maxTemp >= 15) {
+                    advice += "Moderate temperatures - consider a medium-weight jacket or coat. ";
+                } else if (maxTemp >= 10) {
+                    advice += "It's cool today - you'll want a warm coat or jacket. ";
+                } else {
+                    advice += "It's cold today - bundle up with a heavy coat, scarf, and gloves. ";
+                }
+                
+                // Rain advice
+                if (highRainHours > 5) {
+                    advice += "Heavy rain is expected for much of the day - definitely bring a waterproof jacket and umbrella. ";
+                } else if (rainHours > 3) {
+                    advice += "There's a good chance of rain - bring a light rain jacket or umbrella. ";
+                } else if (rainHours > 0) {
+                    advice += "There's a slight chance of rain - you might want to carry a small umbrella just in case. ";
+                } else {
+                    advice += "No rain expected today - no need for rain gear. ";
+                }
+                
+                // Wind advice (if we had wind data)
+                advice += "Check the hourly forecast below for specific timing of weather changes.";
+                
+                return advice;
+            }
+
             renderWeather(data) {
+                const clothingAdvice = this.generateClothingAdvice(data.hourly || []);
+                
                 this.weatherContent.innerHTML = `
                     <div class="location">${data.location}</div>
                     <div class="current-temp">${data.current.temp}°</div>
@@ -353,9 +547,28 @@
                         </div>
                     </div>
 
+                    <div class="clothing-advice">
+                        <div class="clothing-title">WHAT TO WEAR</div>
+                        <div class="clothing-text">${clothingAdvice}</div>
+                    </div>
+
+                    <div class="hourly-forecast">
+                        <div class="hourly-title">HOURLY FORECAST (8AM-10PM)</div>
+                        <div class="hourly-grid">
+                            ${(data.hourly || []).map(hour => `
+                                <div class="hourly-item">
+                                    <div class="hour-time">${hour.time}</div>
+                                    <div class="hour-temp">${hour.temp}°</div>
+                                    <div class="hour-condition">${hour.condition}</div>
+                                    <div class="rain-chance">${hour.rainChance}% rain</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
                     <div class="forecast">
                         <div class="forecast-title">5-DAY FORECAST</div>
-                        ${data.forecast.map(day => `
+                        ${(data.forecast || []).map(day => `
                             <div class="forecast-item">
                                 <div class="day">${day.day}</div>
                                 <div class="forecast-condition">${day.condition}</div>
