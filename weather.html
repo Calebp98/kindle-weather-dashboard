@@ -205,6 +205,78 @@
             border: 1px solid #ccc;
         }
 
+        .clothing-bullets {
+            font-size: 13px;
+            line-height: 1.3;
+            color: #000;
+            background: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
+
+        .clothing-bullets ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .clothing-bullets li {
+            margin-bottom: 8px;
+        }
+
+        /* Temperature graph styles */
+        .temp-graph {
+            border-top: 2px solid #000;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        .graph-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .graph-container {
+            height: 120px;
+            position: relative;
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            background: #fff;
+        }
+
+        .graph-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .graph-point {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #000;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .graph-label {
+            position: absolute;
+            font-size: 10px;
+            color: #333;
+            transform: translateX(-50%);
+        }
+
+        .graph-temp-label {
+            bottom: -15px;
+        }
+
+        .graph-time-label {
+            top: -15px;
+        }
+
         .loading {
             font-size: 18px;
             opacity: 0.8;
@@ -488,40 +560,97 @@
                 const rainHours = hourlyData.filter(h => h.rainChance > 50).length;
                 const highRainHours = hourlyData.filter(h => h.rainChance > 70).length;
                 
-                let advice = `Today's weather ranges from ${minTemp}° to ${maxTemp}° with an average of ${avgTemp}°. `;
+                let bullets = [];
                 
                 // Temperature-based clothing advice
                 if (maxTemp >= 25) {
-                    advice += "It's quite warm today - light clothing like t-shirts and shorts would be comfortable. ";
+                    bullets.push("Light clothing like t-shirts and shorts would be comfortable");
                 } else if (maxTemp >= 20) {
-                    advice += "Pleasant temperatures - a light jacket or sweater should be sufficient. ";
+                    bullets.push("A light jacket or sweater should be sufficient");
                 } else if (maxTemp >= 15) {
-                    advice += "Moderate temperatures - consider a medium-weight jacket or coat. ";
+                    bullets.push("Consider a medium-weight jacket or coat");
                 } else if (maxTemp >= 10) {
-                    advice += "It's cool today - you'll want a warm coat or jacket. ";
+                    bullets.push("You'll want a warm coat or jacket");
                 } else {
-                    advice += "It's cold today - bundle up with a heavy coat, scarf, and gloves. ";
+                    bullets.push("Bundle up with a heavy coat, scarf, and gloves");
                 }
                 
                 // Rain advice
                 if (highRainHours > 5) {
-                    advice += "Heavy rain is expected for much of the day - definitely bring a waterproof jacket and umbrella. ";
+                    bullets.push("Heavy rain expected - bring waterproof jacket and umbrella");
                 } else if (rainHours > 3) {
-                    advice += "There's a good chance of rain - bring a light rain jacket or umbrella. ";
+                    bullets.push("Good chance of rain - bring light rain jacket or umbrella");
                 } else if (rainHours > 0) {
-                    advice += "There's a slight chance of rain - you might want to carry a small umbrella just in case. ";
+                    bullets.push("Slight chance of rain - carry small umbrella just in case");
                 } else {
-                    advice += "No rain expected today - no need for rain gear. ";
+                    bullets.push("No rain expected - no need for rain gear");
                 }
                 
-                // Wind advice (if we had wind data)
-                advice += "Check the hourly forecast below for specific timing of weather changes.";
+                // Additional advice
+                bullets.push(`Temperature range: ${minTemp}° to ${maxTemp}° (avg: ${avgTemp}°)`);
+                bullets.push("Check hourly forecast below for specific timing");
                 
-                return advice;
+                return bullets;
+            }
+
+            createTemperatureGraph(hourlyData) {
+                if (!hourlyData || hourlyData.length === 0) return '';
+                
+                const temps = hourlyData.map(h => h.temp);
+                const minTemp = Math.min(...temps);
+                const maxTemp = Math.max(...temps);
+                const tempRange = maxTemp - minTemp;
+                
+                const graphWidth = 100; // percentage
+                const graphHeight = 100; // percentage
+                
+                let svgPath = '';
+                let points = '';
+                let tempLabels = '';
+                let timeLabels = '';
+                
+                hourlyData.forEach((hour, index) => {
+                    const x = (index / (hourlyData.length - 1)) * graphWidth;
+                    const y = tempRange > 0 ? 
+                        graphHeight - ((hour.temp - minTemp) / tempRange) * graphHeight : 
+                        graphHeight / 2;
+                    
+                    // Add point to path
+                    if (index === 0) {
+                        svgPath += `M ${x} ${y}`;
+                    } else {
+                        svgPath += ` L ${x} ${y}`;
+                    }
+                    
+                    // Add point marker
+                    points += `<div class="graph-point" style="left: ${x}%; top: ${y}%;"></div>`;
+                    
+                    // Add temperature label (every 3rd point to avoid crowding)
+                    if (index % 3 === 0 || index === hourlyData.length - 1) {
+                        tempLabels += `<div class="graph-label graph-temp-label" style="left: ${x}%;">${hour.temp}°</div>`;
+                    }
+                    
+                    // Add time label (every 4th point)
+                    if (index % 4 === 0 || index === hourlyData.length - 1) {
+                        timeLabels += `<div class="graph-label graph-time-label" style="left: ${x}%;">${hour.time}</div>`;
+                    }
+                });
+                
+                return `
+                    <div class="graph-container">
+                        <svg class="graph-line" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path d="${svgPath}" stroke="#000" stroke-width="2" fill="none"/>
+                        </svg>
+                        ${points}
+                        ${tempLabels}
+                        ${timeLabels}
+                    </div>
+                `;
             }
 
             renderWeather(data) {
                 const clothingAdvice = this.generateClothingAdvice(data.hourly || []);
+                const tempGraph = this.createTemperatureGraph(data.hourly || []);
                 
                 this.weatherContent.innerHTML = `
                     <div class="location">${data.location}</div>
@@ -541,15 +670,20 @@
                             <div class="detail-label">WIND</div>
                             <div class="detail-value">${data.current.wind} km/h</div>
                         </div>
-                        <div class="detail-item">
-                            <div class="detail-label">PRESSURE</div>
-                            <div class="detail-value">-- hPa</div>
-                        </div>
                     </div>
 
                     <div class="clothing-advice">
                         <div class="clothing-title">WHAT TO WEAR</div>
-                        <div class="clothing-text">${clothingAdvice}</div>
+                        <div class="clothing-bullets">
+                            <ul>
+                                ${clothingAdvice.map(advice => `<li>${advice}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="temp-graph">
+                        <div class="graph-title">TEMPERATURE TREND</div>
+                        ${tempGraph}
                     </div>
 
                     <div class="hourly-forecast">
