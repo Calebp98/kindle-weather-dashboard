@@ -232,5 +232,22 @@
             <p class="last-updated">Last updated: {{lastUpdated}}</p>
         </footer>
     </div>
+
+    <script>
+        // Periodically trigger events to simulate activity
+        setInterval(() => {
+          // Touch events
+          document.dispatchEvent(new TouchEvent('touchstart', {
+            bubbles: true,
+            cancelable: true
+          }));
+          
+          // Or mouse events
+          document.dispatchEvent(new MouseEvent('mousemove', {
+            bubbles: true,
+            cancelable: true
+          }));
+        }, 30000); // Every 30 seconds
+    </script>
 </body>
 </html>
