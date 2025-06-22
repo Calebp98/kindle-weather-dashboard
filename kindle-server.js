@@ -3,6 +3,9 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Serve static files from public directory
+app.use(express.static("public"));
+
 // Cambridge, UK coordinates
 const LAT = 52.2053;
 const LON = 0.1218;
@@ -79,27 +82,8 @@ function formatTemperature(temp) {
 
 // Function to get weather icon
 function getWeatherIcon(weatherCode) {
-  const iconMap = {
-    "01d": "☀️",
-    "01n": "🌙",
-    "02d": "⛅",
-    "02n": "☁️",
-    "03d": "☁️",
-    "03n": "☁️",
-    "04d": "☁️",
-    "04n": "☁️",
-    "09d": "🌧️",
-    "09n": "🌧️",
-    "10d": "🌦️",
-    "10n": "🌧️",
-    "11d": "⛈️",
-    "11n": "⛈️",
-    "13d": "❄️",
-    "13n": "❄️",
-    "50d": "🌫️",
-    "50n": "🌫️",
-  };
-  return iconMap[weatherCode] || "🌤️";
+  // Return a simple dash as a placeholder, no emoji
+  return "-";
 }
 
 // Function to format time
