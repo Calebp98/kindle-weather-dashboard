@@ -9,7 +9,6 @@
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         body {
@@ -66,11 +65,13 @@
         .current-temp {
             color: #000;
             margin-bottom: 10px;
+            display: block;
         }
 
         .feels-like {
             color: #000;
             margin-bottom: 30px;
+            display: block;
         }
 
         .description {
@@ -78,15 +79,23 @@
             margin-bottom: 30px;
         }
 
+        /* Replace flexbox with table-style layout */
         .current-details {
-            display: flex;
-            justify-content: center;
-            gap: 60px;
+            text-align: center;
+            margin-bottom: 40px;
         }
 
-        /* Forecast */
+        .detail-item {
+            display: inline-block;
+            margin: 0 30px;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        /* Daily forecast */
         .daily-forecast {
             text-align: center;
+            margin-bottom: 40px;
         }
 
         .daily-forecast h2 {
@@ -106,22 +115,29 @@
             color: #000;
         }
 
+        /* Sun times */
         .sun-times {
+            text-align: center;
             margin-top: 40px;
-            display: flex;
-            justify-content: center;
-            gap: 60px;
+        }
+
+        .sun-item {
+            display: inline-block;
+            margin: 0 30px;
+            text-align: center;
+            vertical-align: top;
         }
 
         /* Detail styling */
-        .detail-item, .sun-item {
-            text-align: center;
-        }
-
         .label {
             display: block;
             color: #000;
             margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .value {
+            display: block;
         }
 
         /* Footer */
@@ -134,18 +150,31 @@
             color: #000;
         }
 
-        /* Hide weather icons */
+        /* Hide weather icons and unnecessary elements */
         .icon {
             display: none;
         }
 
-        .forecast-weather .icon,
-        .forecast-weather .description {
+        .weather-icon .description {
             display: none;
         }
 
-        .forecast-details {
-            display: none;
+        /* Ensure good spacing between sections */
+        section {
+            margin-bottom: 60px;
+        }
+
+        /* Make sure text is readable on e-ink */
+        h1, h2, h3 {
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* Simple border for visual separation if needed */
+        .weather-section {
+            border-bottom: 2px solid #000;
+            padding-bottom: 30px;
+            margin-bottom: 30px;
         }
     </style>
 </head>
@@ -160,11 +189,11 @@
         </header>
 
         <main>
-            <section class="current-weather">
+            <section class="current-weather weather-section">
                 <div class="current-main">
                     <div class="temperature">
-                        <span class="daily-highs">{{dailyHigh}}°C {{dailyLow}}°C</span>
-                        <span class="current-temp">{{currentTemp}}°C</span>
+                        <span class="daily-highs">Today: {{dailyHigh}}°C / {{dailyLow}}°C</span>
+                        <span class="current-temp">Now: {{currentTemp}}°C</span>
                         <span class="feels-like">Feels like {{currentFeelsLike}}°C</span>
                     </div>
                     <div class="weather-icon">
@@ -185,22 +214,7 @@
                 </div>
             </section>
 
-                
-                <div class="forecast-details">
-                    <div class="detail-item">
-                        <span class="label">Humidity</span>
-                        <span class="value">{{dailyHumidity}}%</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">Wind</span>
-                        <span class="value">{{dailyWindSpeed}} m/s</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">UV Index</span>
-                        <span class="value">{{dailyUvi}}</span>
-                    </div>
-                </div>
-                
+            <section class="daily-forecast">
                 <div class="sun-times">
                     <div class="sun-item">
                         <span class="label">Sunrise</span>
