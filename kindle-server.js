@@ -196,20 +196,6 @@ app.get("/", async (req, res) => {
   }
 });
 
-// Serve static CSS file
-app.get("/kindle.css", (req, res) => {
-  const fs = require("fs");
-  const path = require("path");
-  const cssPath = path.join(__dirname, "kindle.css");
-
-  if (fs.existsSync(cssPath)) {
-    res.setHeader("Content-Type", "text/css");
-    res.send(fs.readFileSync(cssPath, "utf8"));
-  } else {
-    res.status(404).send("CSS file not found");
-  }
-});
-
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
