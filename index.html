@@ -230,12 +230,19 @@
 
         <footer>
             <p class="last-updated">Last updated: {{lastUpdated}}</p>
+            <p class="activity-counter">Activity counter: <span id="counter">0</span></p>
         </footer>
     </div>
 
     <script>
+        let counter = 0;
+        
         // Periodically trigger events to simulate activity
         setInterval(() => {
+          // Increment counter
+          counter++;
+          document.getElementById('counter').textContent = counter;
+          
           // Touch events
           document.dispatchEvent(new TouchEvent('touchstart', {
             bubbles: true,
