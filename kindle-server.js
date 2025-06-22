@@ -61,21 +61,30 @@ async function getWeatherData() {
 
 // Function to get peak and min temperatures from 8AM to 10PM
 function getPeakMinTemps(hourlyData, targetDay) {
-  const targetDate = new Date();
+  const now = new Date();
+  const targetDate = new Date(now);
   targetDate.setDate(targetDate.getDate() + targetDay);
-  const targetDateStr = targetDate.toISOString().split("T")[0];
+
+  // Get the start and end of the target day in local time
+  const targetDateStart = new Date(targetDate);
+  targetDateStart.setHours(0, 0, 0, 0);
+  const targetDateEnd = new Date(targetDate);
+  targetDateEnd.setHours(23, 59, 59, 999);
+
+  // Convert to timestamps for comparison
+  const startTimestamp = targetDateStart.getTime() / 1000;
+  const endTimestamp = targetDateEnd.getTime() / 1000;
 
   // Filter hourly data for the target day
   const dayHourlyData = hourlyData.filter((hour) => {
-    const hourDate = new Date(hour.dt * 1000);
-    const hourDateStr = hourDate.toISOString().split("T")[0];
-    return hourDateStr === targetDateStr;
+    return hour.dt >= startTimestamp && hour.dt <= endTimestamp;
   });
 
-  // Filter for 8AM to 10PM (hours 8-22)
+  // Filter for 8AM to 10PM (hours 8-22) in local time
   const dayTemps = dayHourlyData
     .filter((hour) => {
-      const hourOfDay = new Date(hour.dt * 1000).getHours();
+      const hourDate = new Date(hour.dt * 1000);
+      const hourOfDay = hourDate.getHours();
       return hourOfDay >= 8 && hourOfDay <= 22;
     })
     .map((hour) => hour.temp);
