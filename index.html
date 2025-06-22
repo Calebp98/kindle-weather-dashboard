@@ -4,8 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kindle Weather Dashboard</title>
-    <link rel="stylesheet" href="/kindle.css">
     <meta http-equiv="refresh" content="900">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: serif;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #000;
+            background: #fff;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .location {
+            margin-bottom: 15px;
+        }
+
+        .date-time {
+            color: #666;
+        }
+
+        .date {
+            margin-right: 20px;
+        }
+
+        /* Current weather */
+        .current-weather {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .current-main {
+            margin-bottom: 40px;
+        }
+
+        .temperature {
+            margin-bottom: 30px;
+        }
+
+        .daily-highs {
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .current-temp {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .feels-like {
+            color: #999;
+            margin-bottom: 30px;
+        }
+
+        .description {
+            text-transform: capitalize;
+            margin-bottom: 30px;
+        }
+
+        .current-details {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+        }
+
+        /* Forecast */
+        .daily-forecast {
+            text-align: center;
+        }
+
+        .daily-forecast h2 {
+            margin-bottom: 30px;
+            color: #666;
+        }
+
+        .forecast-temp {
+            margin-bottom: 20px;
+        }
+
+        .high {
+            margin-right: 20px;
+        }
+
+        .low {
+            color: #999;
+        }
+
+        .sun-times {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+        }
+
+        /* Detail styling */
+        .detail-item, .sun-item {
+            text-align: center;
+        }
+
+        .label {
+            display: block;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 80px;
+            text-align: center;
+        }
+
+        .last-updated {
+            color: #ccc;
+        }
+
+        /* Hide weather icons */
+        .icon {
+            display: none;
+        }
+
+        .forecast-weather .icon,
+        .forecast-weather .description {
+            display: none;
+        }
+
+        .forecast-details {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -21,7 +163,8 @@
             <section class="current-weather">
                 <div class="current-main">
                     <div class="temperature">
-                        <span class="temp-value">{{currentTemp}}°C</span>
+                        <span class="daily-highs">{{dailyHigh}}°C {{dailyLow}}°C</span>
+                        <span class="current-temp">{{currentTemp}}°C</span>
                         <span class="feels-like">Feels like {{currentFeelsLike}}°C</span>
                     </div>
                     <div class="weather-icon">
@@ -42,18 +185,6 @@
                 </div>
             </section>
 
-            <section class="daily-forecast">
-                <h2>Today's Forecast</h2>
-                <div class="forecast-main">
-                    <div class="forecast-temp">
-                        <span class="high">{{dailyHigh}}°C</span>
-                        <span class="low">{{dailyLow}}°C</span>
-                    </div>
-                    <div class="forecast-weather">
-                        <span class="icon">{{dailyWeatherIcon}}</span>
-                        <span class="description">{{dailyWeatherDesc}}</span>
-                    </div>
-                </div>
                 
                 <div class="forecast-details">
                     <div class="detail-item">
@@ -88,4 +219,4 @@
         </footer>
     </div>
 </body>
-</html> 
+</html>

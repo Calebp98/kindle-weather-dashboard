@@ -3,9 +3,6 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from public directory
-app.use(express.static("public"));
-
 // Cambridge, UK coordinates
 const LAT = 52.2053;
 const LON = 0.1218;
@@ -185,11 +182,13 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Kindle Weather Dashboard running on port ${PORT}`);
-  console.log(`Dashboard available at: http://localhost:${PORT}`);
-  console.log(`Health check at: http://localhost:${PORT}/health`);
-});
+// Only start the server if not running through Vercel
+if (!process.env.VERCEL && !process.env.VERCEL_DEV) {
+  app.listen(PORT, () => {
+    console.log(`Kindle Weather Dashboard running on port ${PORT}`);
+    console.log(`Dashboard available at: http://localhost:${PORT}`);
+    console.log(`Health check at: http://localhost:${PORT}/health`);
+  });
+}
 
 module.exports = app;
