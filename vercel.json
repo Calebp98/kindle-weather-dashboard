@@ -18,12 +18,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "kindle-server.js": {
-      "env": {
-        "OPENWEATHER_API_KEY": "@openweather_api_key"
-      }
-    }
   }
 } 
