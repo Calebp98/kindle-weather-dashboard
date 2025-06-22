@@ -19,7 +19,7 @@ async function fetchWeatherData() {
     throw new Error("OPENWEATHER_API_KEY environment variable is required");
   }
 
-  const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${LAT}&lon=${LON}&exclude=minutely,hourly,alerts&units=metric&appid=${apiKey}`;
+  const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${LAT}&lon=${LON}&exclude=minutely,alerts&units=metric&appid=${apiKey}`;
 
   try {
     // Use dynamic import for node-fetch v3
@@ -57,6 +57,38 @@ async function getWeatherData() {
     }
     throw error;
   }
+}
+
+// Function to get peak and min temperatures from 8AM to 10PM
+function getPeakMinTemps(hourlyData, targetDay) {
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() + targetDay);
+  const targetDateStr = targetDate.toISOString().split("T")[0];
+
+  // Filter hourly data for the target day
+  const dayHourlyData = hourlyData.filter((hour) => {
+    const hourDate = new Date(hour.dt * 1000);
+    const hourDateStr = hourDate.toISOString().split("T")[0];
+    return hourDateStr === targetDateStr;
+  });
+
+  // Filter for 8AM to 10PM (hours 8-22)
+  const dayTemps = dayHourlyData
+    .filter((hour) => {
+      const hourOfDay = new Date(hour.dt * 1000).getHours();
+      return hourOfDay >= 8 && hourOfDay <= 22;
+    })
+    .map((hour) => hour.temp);
+
+  if (dayTemps.length === 0) {
+    // Fallback to daily min/max if no hourly data available
+    return { peak: null, min: null };
+  }
+
+  return {
+    peak: Math.max(...dayTemps),
+    min: Math.min(...dayTemps),
+  };
 }
 
 // Function to determine which day's forecast to show
@@ -110,6 +142,19 @@ app.get("/", async (req, res) => {
     const current = weatherData.current;
     const daily = weatherData.daily[targetDay];
 
+    // Get peak and min temperatures from 8AM to 10PM
+    const peakMinTemps = getPeakMinTemps(weatherData.hourly, targetDay);
+
+    // Use peak/min temps if available, otherwise fallback to daily min/max
+    const dailyHigh =
+      peakMinTemps.peak !== null
+        ? formatTemperature(peakMinTemps.peak)
+        : formatTemperature(daily.temp.max);
+    const dailyLow =
+      peakMinTemps.min !== null
+        ? formatTemperature(peakMinTemps.min)
+        : formatTemperature(daily.temp.min);
+
     // Prepare data for template
     const templateData = {
       location: "Cambridge, UK",
@@ -121,8 +166,8 @@ app.get("/", async (req, res) => {
       currentWindSpeed: Math.round(current.wind_speed),
       currentWeatherIcon: getWeatherIcon(current.weather[0].icon),
       currentWeatherDesc: current.weather[0].description,
-      dailyHigh: formatTemperature(daily.temp.max),
-      dailyLow: formatTemperature(daily.temp.min),
+      dailyHigh: dailyHigh,
+      dailyLow: dailyLow,
       dailyWeatherIcon: getWeatherIcon(daily.weather[0].icon),
       dailyWeatherDesc: daily.weather[0].description,
       dailyHumidity: daily.humidity,
