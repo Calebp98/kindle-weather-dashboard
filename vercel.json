@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "kindle-server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/kindle.css",
+      "dest": "/kindle.css"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/kindle-server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "kindle-server.js": {
+      "env": {
+        "OPENWEATHER_API_KEY": "@openweather_api_key"
+      }
+    }
+  }
+} 

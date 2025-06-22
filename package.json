@@ -1,0 +1,27 @@
+{
+  "name": "kindle-weather-dashboard",
+  "version": "1.0.0",
+  "description": "A minimalist, server-rendered weather dashboard optimized for Kindle e-ink displays",
+  "main": "kindle-server.js",
+  "scripts": {
+    "start": "node kindle-server.js",
+    "dev": "node kindle-server.js",
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "kindle",
+    "weather",
+    "dashboard",
+    "e-ink",
+    "server-rendered"
+  ],
+  "author": "",
+  "license": "MIT"
+} 

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kindle Weather Dashboard</title>
+    <link rel="stylesheet" href="/kindle.css">
+    <meta http-equiv="refresh" content="900">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="location">{{location}}</h1>
+            <div class="date-time">
+                <span class="date">{{currentDate}}</span>
+                <span class="time">{{currentTime}}</span>
+            </div>
+        </header>
+
+        <main>
+            <section class="current-weather">
+                <div class="current-main">
+                    <div class="temperature">
+                        <span class="temp-value">{{currentTemp}}°C</span>
+                        <span class="feels-like">Feels like {{currentFeelsLike}}°C</span>
+                    </div>
+                    <div class="weather-icon">
+                        <span class="icon">{{currentWeatherIcon}}</span>
+                        <span class="description">{{currentWeatherDesc}}</span>
+                    </div>
+                </div>
+                
+                <div class="current-details">
+                    <div class="detail-item">
+                        <span class="label">Humidity</span>
+                        <span class="value">{{currentHumidity}}%</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Wind</span>
+                        <span class="value">{{currentWindSpeed}} m/s</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="daily-forecast">
+                <h2>Today's Forecast</h2>
+                <div class="forecast-main">
+                    <div class="forecast-temp">
+                        <span class="high">{{dailyHigh}}°C</span>
+                        <span class="low">{{dailyLow}}°C</span>
+                    </div>
+                    <div class="forecast-weather">
+                        <span class="icon">{{dailyWeatherIcon}}</span>
+                        <span class="description">{{dailyWeatherDesc}}</span>
+                    </div>
+                </div>
+                
+                <div class="forecast-details">
+                    <div class="detail-item">
+                        <span class="label">Humidity</span>
+                        <span class="value">{{dailyHumidity}}%</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Wind</span>
+                        <span class="value">{{dailyWindSpeed}} m/s</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">UV Index</span>
+                        <span class="value">{{dailyUvi}}</span>
+                    </div>
+                </div>
+                
+                <div class="sun-times">
+                    <div class="sun-item">
+                        <span class="label">Sunrise</span>
+                        <span class="value">{{sunrise}}</span>
+                    </div>
+                    <div class="sun-item">
+                        <span class="label">Sunset</span>
+                        <span class="value">{{sunset}}</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p class="last-updated">Last updated: {{lastUpdated}}</p>
+        </footer>
+    </div>
+</body>
+</html> 
